@@ -1,0 +1,78 @@
+# vim:ft=ansible
+---
+- hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Make sure debian version of docker is gone
+      apt:
+        name: docker.io
+        state: absent
+
+    - name: Add GPG key for docker
+      apt_key:
+        url: 'https://download.docker.com/linux/ubuntu/gpg'
+        state: present
+
+    - name: Add K8s GPG key
+      apt_key:
+        url: 'https://packages.cloud.google.com/apt/doc/apt-key.gpg'
+        state: present
+
+    - name: Add docker apt repository
+      apt_repository:
+        repo: 'deb https://download.docker.com/linux/ubuntu xenial stable'
+        filename: docker
+        state: present
+        update_cache: yes
+
+    - name: Add K8s apt repository
+      apt_repository:
+        repo: 'deb https://apt.kubernetes.io/ kubernetes-xenial main'
+        filename: kubernetes
+        state: present
+        update_cache: yes
+
+    - name: Install docker
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: Install K8s commands
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+    - name: Hold kubeadm
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+    - name: Add appropriate cgroups to commandline.txt
+      lineinfile:
+        path: '/boot/firmware/cmdline.txt'
+        regexp: '^(net.ifnames=0 .*)$'
+        line: 'cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1 swapaccount=1 \1'
+        backrefs: yes
+
+    - name: Allow iptables to see bridged traffic
+      copy:
+        src: sysctl-k8s.conf
+        dest: /etc/sysctl.d/10-k8s.conf
+      notify:
+        - 'Reload sysctl params'
+
+  handlers:
+    - name: Reload sysctl params
+      command: sysctl --system
