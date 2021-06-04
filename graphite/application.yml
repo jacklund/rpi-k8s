@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graphite
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+      name: http
+    - port: 2003
+      protocol: TCP
+      targetPort: 2003
+      name: carbon
+    - port: 8125
+      protocol: TCP
+      targetPort: 8125
+      name: statsd
+    - port: 8126
+      protocol: TCP
+      targetPort: 8126
+      name: statsd-admin
+  selector:
+    app: graphite
+  sessionAffinity: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: graphite
+  name: graphite
+spec:
+  selector:
+    matchLabels:
+      app: graphite
+  template:
+    metadata:
+      labels:
+        app: graphite
+    spec:
+      containers:
+        - image: graphiteapp/graphite-statsd:1.1.8-1
+          imagePullPolicy: IfNotPresent
+          name: graphite
+          env:
+            - name: COLLECTD
+              value: "1"
+          ports:
+            - containerPort: 2003
+              name: carbon-plain
+            - containerPort: 2004
+              name: carbon-pkl
+            - containerPort: 2023
+              name: carbon-ag-plain
+            - containerPort: 2024
+              name: carbon-ag-pkl
+            - containerPort: 8125
+              name: statsd
+            - containerPort: 8126
+              name: statsd-admin
+            - containerPort: 80
+              name: http
