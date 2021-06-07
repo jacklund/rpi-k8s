@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PID_FILE="/tmp/registry-forwarder.pid"
+
+function start {
+  POD=$(kubectl get pods -n kube-system -l k8s-app=kube-registry-upstream | tail -1 | awk '{print $1}')
+  nohup kubectl port-forward --namespace kube-system ${POD} 5000:5000 > /dev/null 2>&1 &
+  echo $! > ${PID_FILE}
+}
+
+function stop {
+  if [[ -r ${PID_FILE} ]]; then
+    pid=$(cat ${PID_FILE})
+  else
+    pid=$(ps -ef | grep 'kubectl port-forward --namespace kube-system kube-registry' | grep -v grep | awk '{print $2}')
+  fi
+
+  if [[ -z ${pid} ]]; then
+    echo "Couldn't find forwarder process to stop"
+  else
+    kill ${pid}
+  fi
+}
+
+case $1 in
+  "start") start ;;
+  "stop") stop ;;
+  *) echo "Usage: $0 (start|stop)" ;;
+esac
