@@ -26,6 +26,23 @@ spec:
     app: graphite
   sessionAffinity: None
 ---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-graphite
+  annotations:
+    # use the shared ingress-nginx
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+    - host: graphite.local
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: graphite
+              servicePort: 80
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
