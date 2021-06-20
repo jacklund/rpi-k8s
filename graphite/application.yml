@@ -67,6 +67,7 @@ spec:
               value: "1"
           ports:
             - containerPort: 2003
+              hostPort: 2003
               name: carbon-plain
             - containerPort: 2004
               name: carbon-pkl
@@ -75,6 +76,7 @@ spec:
             - containerPort: 2024
               name: carbon-ag-pkl
             - containerPort: 8125
+              hostPort: 8125
               name: statsd
             - containerPort: 8126
               name: statsd-admin
