@@ -21,6 +21,8 @@ spec:
         kubernetes.io/cluster-service: "true"
         version: v0.4
     spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
       containers:
         - name: kube-registry-proxy
           # image: gcr.io/google_containers/kube-registry-proxy:0.4
@@ -36,7 +38,7 @@ spec:
               value: "5000"
           ports:
             - name: registry
-              containerPort: 80
+              containerPort: 5000
               hostPort: 5000
 ---
 apiVersion: v1
