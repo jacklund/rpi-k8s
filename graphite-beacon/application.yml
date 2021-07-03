@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: graphite-beacon
+  name: graphite-beacon
+spec:
+  selector:
+    matchLabels:
+      app: graphite-beacon
+  template:
+    metadata:
+      labels:
+        app: graphite-beacon
+    spec:
+      hostNetwork: false
+      containers:
+        - image: dockerhub.local:5000/deliverous/graphite-beacon:0.27.2
+          imagePullPolicy: IfNotPresent
+          name: graphite-beacon
+          resources:
+            limits:
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 300Mi
+          volumeMounts:
+            - name: config
+              mountPath: /srv/alerting/etc
+            - name: telegram
+              mountPath: /srv/alerting/etc/includes
+      volumes:
+        - name: config
+          configMap:
+            name: graphite-beacon-config
+            items:
+              - key: config.json
+                path: config.json
+        - name: telegram
+          secret:
+            secretName: graphite-beacon
