@@ -76,6 +76,17 @@ spec:
               name: grafana
       volumes:
         - name: grafana
-          hostPath:
-            path: /var/lib/grafana
-            type: Directory
+          persistentVolumeClaim:
+            claimName: nfs-grafana
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-grafana
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
