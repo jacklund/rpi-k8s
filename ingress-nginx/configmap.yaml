@@ -13,3 +13,12 @@ metadata:
   name: ingress-nginx-controller
   namespace: ingress-nginx
 data:
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tcp-services
+  namespace: ingress-nginx
+data:
+  2003: "default/graphite:2003"
+  8125: "default/graphite:8125"
