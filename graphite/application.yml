@@ -82,3 +82,22 @@ spec:
               name: statsd-admin
             - containerPort: 80
               name: http
+          volumeMounts:
+            - mountPath: /opt/graphite/storage
+              name: graphite
+      volumes:
+        - name: graphite
+          persistentVolumeClaim:
+            claimName: nfs-graphite
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-graphite
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
