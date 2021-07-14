@@ -1,0 +1,54 @@
+# vim:ft=ansible
+---
+- hosts: kube_controllers
+  become: yes
+  tasks:
+    - name: install NFS server
+      apt:
+        name: nfs-kernel-server
+        state: present
+        update_cache: yes
+
+    - name: create NFS directory
+      file:
+        path: /mnt/nfs
+        state: directory
+        owner: nobody
+        group: nogroup
+        mode: 0777
+
+    - name: add line to /etc/exports
+      lineinfile:
+        path: /etc/exports
+        regexp: ^/mnt/nfs
+        firstmatch: yes
+        line: /mnt/nfs        192.168.1.0/24(rw,sync,no_subtree_check) localhost(rw,sync,no_subtree_check) 10.244.0.0/24(rw,sync,no_subtree_check)
+        insertafter: EOF
+
+    - name: run exportfs
+      command: exportfs -a
+
+    - name: restart nfs
+      systemd:
+        name: nfs-kernel-server
+        state: restarted
+
+- hosts: kube_workers
+  become: yes
+  tasks:
+    - name: install NFS common
+      apt:
+        name: nfs-common
+        state: present
+        update_cache: yes
+
+    - name: create mount point
+      file:
+        path: /mnt/nfs
+        state: directory
+        owner: nobody
+        group: nogroup
+        mode: 0777
+
+    - name: mount NFS volume
+      command: mount k8s-controller01.local:/mnt/nfs /mnt/nfs
