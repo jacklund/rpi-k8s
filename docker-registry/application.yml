@@ -118,12 +118,13 @@ spec:
       volumes:
         - name: image-store
           persistentVolumeClaim:
-            claimName: nfs-pvc
+            claimName: nfs-kube-registry
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nfs-pvc
+  name: nfs-kube-registry
+  namespace: kube-system
 spec:
   storageClassName: nfs
   accessModes:
