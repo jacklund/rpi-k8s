@@ -17,6 +17,21 @@
         group: nogroup
         mode: 0777
 
+    - name: add line to /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        regexp: ^/dev/sda1
+        firstmatch: yes
+        line: /dev/sda1     /mnt/nfs  ext4  defaults  0   0
+        insertafter: EOF
+
+    - name: mount drive
+      mount:
+        path: /mnt/nfs
+        src: /dev/sda1
+        fstype: ext4
+        state: mounted
+
     - name: add line to /etc/exports
       lineinfile:
         path: /etc/exports
@@ -42,13 +57,23 @@
         state: present
         update_cache: yes
 
-    - name: create mount point
+    - name: check if mount point exists
+      stat:
+        path: /mnt/nfs
+      register: nfs_mount
+
+    - name: create mount point if it doesn't exist
       file:
         path: /mnt/nfs
         state: directory
         owner: nobody
         group: nogroup
         mode: 0777
+      when: nfs_mount.stat.isdir is not defined or not nfs_mount.stat.isdir
 
     - name: mount NFS volume
-      command: mount k8s-controller01.local:/mnt/nfs /mnt/nfs
+      mount:
+        path: /mnt/nfs
+        src: k8s-controller01.local:/mnt/nfs
+        state: mounted
+        fstype: nfs
