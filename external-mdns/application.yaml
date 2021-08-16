@@ -37,15 +37,17 @@ subjects:
   - kind: ServiceAccount
     name: external-mdns
     namespace: external-mdns
+
+# NOTE: This needs to be a daemonset because if we run it as a single-node
+# deployment, the node it's running on can't resolve the hosts, so we need
+# at least two sending out so that all the K8s nodes can resolve
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: external-mdns
   namespace: external-mdns
 spec:
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app: external-mdns
